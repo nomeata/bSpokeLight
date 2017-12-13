@@ -10,6 +10,7 @@ maintainer:          mail@joachim-breitner.de
 copyright:           2017 Joachim Breitner
 build-type:          Simple
 extra-source-files:  ChangeLog.md
+                     firmware/firmware.bin
 cabal-version:       >=1.10
 tested-with:         GHC ==8.0.2, GHC==8.2.2
 
