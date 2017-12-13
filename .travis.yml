@@ -24,8 +24,9 @@ before_cache:
   - rm -fv $HOME/.cabal/packages/hackage.haskell.org/01-index.tar
   - rm -fv $HOME/.cabal/packages/hackage.haskell.org/01-index.tar.idx
 
-apt:
-  packages: sdcc
+addons:
+  apt:
+    packages: sdcc
 
 matrix:
   include:
