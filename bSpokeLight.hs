@@ -44,7 +44,7 @@ bitBuilder off rot f =
     , (a, pos) <- ((False,) <$> arm) ++ (((True,) . negate) <$> arm)
     ]
   where
-    rot_radians = -(rot-3)/12*2*pi
+    rot_radians = (-rot-3)/12*2*pi
     arm = concatMap reverse $ chunksOf 8 $ map (cCENTER/2 +) [0..31]
     radius = sqrt (cLEN^2 + off^2)
 
