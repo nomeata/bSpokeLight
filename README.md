@@ -46,21 +46,25 @@ The images should be quadratic (otherwise they will be deformed), and ideally
 use only the eight colors black, white, red, green, blue, yellow, magenta,
 cyan.
 
-To load the firmware onto your wheel, use any STC ISP flash tool, such as [stcgal](https://github.com/grigorig/stcgal):
+To load the firmware onto your wheel, use any STC ISP flash tool, such as
+[stcgal](https://github.com/grigorig/stcgal):
 
     ../path/to/stcgal.py my-firmware.bin
 
 Calibrating your wheel
 ----------------------
 
-Look at the wheel from the left side. Where is the magnet? Picture the hour arm of a clock pointing that direction. Which hour is that (e.g. 10)? Pass this number as the rotation.
+Look at the wheel from the left side. Where is the magnet? Picture the hour arm
+of a clock pointing that direction. Which hour is that (e.g. 10)? Pass this
+number as the **rotation**.
 
 Now rotate the wheel so that the LED strip is horizontal, and the end with the
 white sensor is on the left. How far is the strip above the center of the hub?
 Measure this number in “LEDs”, i.e. using another strip. Pass this number as
-the offset. If the LED strip is actually below the hub, then the number is negative.
+the **offset**. If the LED strip is actually below the hub, then the number is negative.
 
-Example (with a very wide hub):
+You can now pass these parameters when creating your firmware, for example
+(with a very wide hub):
 
     $ bSpokeLight --offset 7 --rotation 10.5 --output my-firmware.bin …
 
@@ -75,7 +79,8 @@ significant interest, I am avoiding the effort of polishing this.
  * Run `make -C firmware` to build the firmware image.
  * Run `cabal install --bindir=.` to build the `bSpokeLight` tool.
 
-You should now find a `bSpokeLight` binary. The firmware is embedded in it, so you can use it independently from other files.
+You should now find a `bSpokeLight` binary. The firmware is embedded in it, so
+you can use it independently from other files.
 
 
 Hacking on bSpokeLight
@@ -83,7 +88,8 @@ Hacking on bSpokeLight
 
 This is what I learned about the YQ8003 hardware:
 
- * The microcontroller is a STC12LE5A60S2 with 22MHz and 60KB of RAM. [Data sheet](www.stcmcu.com/datasheet/stc/stc-ad-pdf/stc12c5a60s2-english.pdf)
+ * The microcontroller is a STC12LE5A60S2 with 22MHz and 60KB of RAM. [Data
+   sheet](www.stcmcu.com/datasheet/stc/stc-ad-pdf/stc12c5a60s2-english.pdf)
 
    It is 8051 compatible, so a lot of generic information on how to program
    this microcontroller is online.
@@ -91,7 +97,7 @@ This is what I learned about the YQ8003 hardware:
  * The LEDs are controlled as follows:
 
    - `P3_4 = 0` enables the lights.
-   - The 8 bits `P1` indicate which groups of LEDs are adressed. Bits 0,1,2,3
+   - The 8 bits of `P1` indicate which groups of LEDs are adressed. Bits 0,1,2,3
      address the groups on the arm with the buttons, counted from the middle,
      while bits 7,6,5,4 address the groupos on the arm with the sensor, again
      from the middle.

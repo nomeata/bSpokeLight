@@ -11,7 +11,7 @@ copyright:           2017 Joachim Breitner
 build-type:          Simple
 extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
-tested-with:         GHC ==8.0.3
+tested-with:         GHC ==8.0.2, GHC==8.2.2
 
 executable bSpokeLight
   main-is:             bSpokeLight.hs
