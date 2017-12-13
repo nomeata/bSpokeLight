@@ -40,6 +40,7 @@ before_install:
   - PATH=/opt/ghc/bin:/opt/ghc-ppa-tools/bin:$PATH
 
 install:
+  - make -C firmware
   - cabal --version
   - echo "$(${HC} --version) [$(${HC} --print-project-git-commit-id 2> /dev/null || echo '?')]"
   - BENCH=${BENCH---enable-benchmarks}
@@ -62,7 +63,6 @@ install:
 # Here starts the actual work to be performed for the package under test;
 # any command which exits with a non-zero exit code causes the build to fail.
 script:
-  - make -C firmware
   # test that source-distributions can be generated
   - (cd "."; cabal sdist)
   - mv "."/dist/bSpokeLight-*.tar.gz ${DISTDIR}/
