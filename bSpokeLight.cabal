@@ -12,15 +12,15 @@ build-type:          Simple
 extra-source-files:  ChangeLog.md
                      firmware/firmware.bin
 cabal-version:       >=1.10
-tested-with:         GHC ==8.0.2, GHC==8.2.2
+tested-with:         GHC ==7.6.3, GHC ==8.0.2, GHC==8.2.2
 
 executable bSpokeLight
   main-is:             bSpokeLight.hs
-  build-depends:       base >=4.9 && <4.11
+  build-depends:       base >=4.6 && <4.11
   build-depends:       filepath
   build-depends:       bytestring
   build-depends:       bitwise >= 0.1 && <0.2
-  build-depends:       JuicyPixels
+  build-depends:       JuicyPixels >= 3.2.7 && < 3.3
   build-depends:       optparse-applicative >= 0.13 && <0.15
   build-depends:       split >= 0.2 && <0.3
   build-depends:       file-embed >= 0.0.10 && <0.1
