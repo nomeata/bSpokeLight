@@ -21,10 +21,15 @@ import Data.Monoid
 import System.Exit
 import Data.Char
 import Data.FileEmbed
+import Language.Haskell.TH
+import Language.Haskell.TH.Syntax
+import Text.Regex.Posix
+import Numeric (readHex)
 
-cFRAMES = 256
-cCENTER = 9
-cLEN=33+cCENTER/2
+cFRAMES = 256          :: Integer
+cCENTER = 9            :: Double
+cLEN    = 33+cCENTER/2 :: Double
+cT0RATE = 1000000      :: Integer -- TODO: Need to calibrate this
 
 data Color = R|G|B deriving (Show, Eq)
 
@@ -32,6 +37,7 @@ data Color = R|G|B deriving (Show, Eq)
 type Offset = Double
 type Shift = Double
 type Rotation = Double
+type Speed = Double
 
 type BitMaker = (Color -> Bool -> Complex Double -> Bool) -> [Bool]
 
@@ -100,21 +106,36 @@ getImage builder source = case source of
             let bits = dynImageToPackagedData builder dynImage
             pure [(bits, n)]
 
-replace :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BS.ByteString
-replace pat replacement source
-    | BS.null after
-    = error $ "replaceIn: Pattern not found: " ++ show pat
+replace :: Int -> BS.ByteString -> BS.ByteString -> BS.ByteString
+replace at replacement source
     | BS.length replacement > BS.length after
     = error "replaceIn: Replacement larger than remaining string"
     | otherwise = before <> replacement <> BS.drop (BS.length replacement) after
     where
-        (before, after) = BS.breakSubstring pat source
+        (before, after) = BS.splitAt at source
 
 template :: BS.ByteString
 template = $(embedFile "firmware/firmware.bin")
 
-work :: FilePath -> Offset -> Shift -> Rotation -> [(FilePath, Double)] -> IO ()
-work output offset shift rotation timed_sources = do
+offsetInitialStep, offsetTiming, offsetImages :: Int
+(offsetInitialStep, offsetTiming, offsetImages) = $(do
+    qAddDependentFile "firmware/firmware.map"
+    mapFile <- runIO $ readFile "firmware/firmware.map"
+    let find name
+            | [_,s] <- getAllTextSubmatches (mapFile =~ ("^C: +([0-9ABCDEF]{8}) +_" ++ name)) :: [String]
+            , [(i,"")] <- readHex s
+            = return i
+            | otherwise
+            = do reportError $ "Cound not find location of " ++ show name ++ " in firmware.map"
+                 fail ""
+    ois <- find "initial_step"
+    ot  <- find "timing"
+    oi  <- find "images"
+    return $ TupE $ map LitE [integerL ois, integerL ot, integerL oi]
+    )
+
+work :: FilePath -> Offset -> Shift -> Rotation -> Speed -> [(FilePath, Double)] -> IO ()
+work output offset shift rotation speed timed_sources = do
     let builder = bitBuilder offset shift rotation
     timed_data <- concat <$> mapM (getImage builder) timed_sources
     let (imagesData, timings) = unzip timed_data
@@ -124,19 +145,22 @@ work output offset shift rotation timed_sources = do
         putStrLn $ "Too many images"
         exitFailure
 
-
-    let imagePattern = BS.pack (map (fromIntegral.ord) "THIS IS WHERE THE IMAGE STARTS")
     let timingData    = BS.pack $ map fromIntegral $
             concatMap (\x -> [x`mod`256, x`div`256]) $
             map round $
             map (*256) $
             take 8 $ timings ++ repeat 0
-    let timingPattern = BS.pack (take 16 (cycle [42,23]))
+
+    let initial_step_data = BS.pack $ map fromIntegral $
+            concatMap (\x -> [x`mod`256, x`div`256]) $
+            map round $
+            [ speed / fromIntegral cFRAMES * fromIntegral cT0RATE ]
 
     putStrLn $ "Writing " ++ output
     BS.writeFile output $
-        replace imagePattern imageData $
-        replace timingPattern timingData $
+        replace offsetImages imageData $
+        replace offsetTiming timingData $
+        replace offsetInitialStep initial_step_data $
         template
 
 -- Argument handling
@@ -174,6 +198,12 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> metavar "ROTATION"
             <> help "position of the magnet [0..12]"
             <> value 0
+            )
+        <*> option auto
+            (  long "speed"
+            <> metavar "SPEED"
+            <> help "how many seconds to show one image initially"
+            <> value 0.5
             )
         <*> some (
             (,) <$> strArgument

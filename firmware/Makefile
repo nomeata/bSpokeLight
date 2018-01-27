@@ -7,4 +7,14 @@ firmware.bin: firmware.ihx
 	objcopy -Iihex --output-target binary $< $@
 
 clean:
-	rm -f firmware.bin firmware.ihx
+	rm -f firmware.bin \
+	      firmware.ihx \
+	      firmware.asm \
+	      firmware.lk  \
+	      firmware.map \
+	      firmware.rel \
+	      firmware.sym \
+	      firmware.lst \
+	      firmware.mem \
+	      firmware.rst \
+

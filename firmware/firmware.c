@@ -10,17 +10,28 @@
 #define RELOAD_T1_HI 0xE4
 #define RELOAD_T1_LO 0x06
 
+// how many timers until the next frame (row) is shown
+// used initially, until the first magnet contact
+// (i.e the first interrupt 0)
+__code const uint16_t initial_step = 1000000/FRAMES;
+
 __code const uint16_t timing[IMAGES] =
 	{ 23*256+42,23*256+42,23*256+42,23*256+42,23*256+42,23*256+42,23*256+42,23*256+42 };
 
 __code const uint8_t images[IMAGES][FRAMES * 3 * 8] =
 	{"THIS IS WHERE THE IMAGE STARTS"};
 
+// How many timer 1 cycles since the image started?
 uint16_t counter = 0;
+// How many timer 2 cycles until the next image?
 uint16_t time10ms = timing[0];
+// Which images to show?
 uint8_t image_num = 0;
-uint16_t step = 1000000/FRAMES;
-uint16_t counter2 = 100000/FRAMES;
+// How many timer 1 cycles per frame
+uint16_t step;
+// How many timer 1 cycles until the next frame
+uint16_t counter2;
+// Which frame
 uint8_t frame = 0;
 
 
@@ -161,6 +172,8 @@ void main () {
 
 	// Unclear purpose, later the code reads from P4_2.
 	//P4_0 = 1;
+
+	step = counter2 = initial_step;
 
 	EA = 1; // Enable interrupts
 
