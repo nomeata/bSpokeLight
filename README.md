@@ -61,10 +61,17 @@ number as the **rotation**.
 Now rotate the wheel so that the LED strip is horizontal, and the end with the
 white sensor is on the left. How far is the strip above the center of the hub?
 Measure this number in “LEDs”, i.e. using another strip. Pass this number as
-the **offset**. If the LED strip is actually below the hub, then the number is negative.
+the **offset**. If the LED strip is actually below the hub, then the number is
+negative.
 
-You can now pass these parameters when creating your firmware, for example
-(with a very wide hub):
+Usually the middle piece of the strip is not directly above or below the hub;
+in that case, you can ignore this paragraph. But otherwise, you need a
+**shift**. Measure how far the center of the strip is to the left of the hub.
+Pass this number as the **shift**. If the strip is actually shifted to the
+right, then the number is negative.
+
+You pass these parameters when creating your firmware, for example (with a very
+wide hub, and no shift):
 
     $ bSpokeLight --offset 7 --rotation 10.5 --output my-firmware.bin …
 

@@ -30,23 +30,26 @@ data Color = R|G|B deriving (Show, Eq)
 
 
 type Offset = Double
+type Shift = Double
 type Rotation = Double
 
 type BitMaker = (Color -> Bool -> Complex Double -> Bool) -> [Bool]
 
 
-bitBuilder :: Offset -> Rotation -> BitMaker
-bitBuilder off rot f =
-    [ f c a (((pos :+ off) * cis rho * cis rot_radians) / (radius :+ 0))
+bitBuilder :: Offset -> Shift -> Rotation -> BitMaker
+bitBuilder off shift rot f =
+    [ f c a (((cpos + displacement) * cis rho * cis rot_radians) / (radius :+ 0))
     | frame <- [0,1..cFRAMES-1]
     , let rho = fromIntegral frame*2*pi/ fromIntegral cFRAMES
     , c <- [R,G,B]
     , (a, pos) <- ((False,) <$> arm) ++ (((True,) . negate) <$> arm)
+    , let cpos = pos :+ 0
     ]
   where
+    displacement = (shift :+ off)
     rot_radians = (-rot-3)/12*2*pi
     arm = concatMap reverse $ chunksOf 8 $ map (cCENTER/2 +) [0..31]
-    radius = sqrt (cLEN^2 + off^2)
+    radius = sqrt ((cLEN + abs shift)^2 + off^2)
 
 getColor :: Color -> PixelRGB8 -> Bool
 getColor R (PixelRGB8 r _ _ ) = r > 130
@@ -55,7 +58,7 @@ getColor B (PixelRGB8 _ _ b ) = b > 130
 
 calibrationBits :: [Bool]
 calibrationBits = map not $ foldr1 (zipWith (||)) $
-    [ bitBuilder off 0 $ \c a z ->
+    [ bitBuilder off 0 0 $ \c a z ->
         abs (phase z - off*pi/10) < pi/40 &&
        (c == oc) &&
        (if a then magnitude z > 0.75
@@ -110,9 +113,9 @@ replace pat replacement source
 template :: BS.ByteString
 template = $(embedFile "firmware/firmware.bin")
 
-work :: FilePath -> Offset -> Rotation -> [(FilePath, Double)] -> IO ()
-work output offset rotation timed_sources = do
-    let builder = bitBuilder offset rotation
+work :: FilePath -> Offset -> Shift -> Rotation -> [(FilePath, Double)] -> IO ()
+work output offset shift rotation timed_sources = do
+    let builder = bitBuilder offset shift rotation
     timed_data <- concat <$> mapM (getImage builder) timed_sources
     let (imagesData, timings) = unzip timed_data
     let imageData = BS.concat imagesData
@@ -157,7 +160,12 @@ main = join . customExecParser (prefs showHelpOnError) $
         <*> option auto
             (  long "offset"
             <> metavar "OFFSET"
-            <> help "offset of the bar from the hub (in leds)"
+            <> help "vertical offset of the bar from the hub (in leds)"
+            )
+        <*> option auto
+            (  long "shift"
+            <> metavar "SHIFT"
+            <> help "horizontal shift of the bar from the hub (in leds)"
             )
         <*> option auto
             (  long "rotation"
