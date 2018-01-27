@@ -1,7 +1,10 @@
 name:                bSpokeLight
 version:             0.1
 synopsis:            Custom firmware for the YQ8003 bicycle spoke light
--- description:         
+description:         This project provides an alternative firmware for LED
+                     spoke lights. Currently, only the model YQ8003 (128 LEDs)
+                     is supported.
+category:            Hardware
 homepage:            https://github.com/nomeata/bSpokeLight
 license:             MIT
 license-file:        LICENSE
