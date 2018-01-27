@@ -202,8 +202,8 @@ main = join . customExecParser (prefs showHelpOnError) $
             )
         <*> option auto
             (  long "speed"
-            <> metavar "SPEED"
-            <> help "how many seconds to show one image initially"
+            <> metavar "SECONDS"
+            <> help "how long one image scan is initially"
             <> value 0.5
             <> showDefault
             )
