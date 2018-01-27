@@ -161,16 +161,19 @@ main = join . customExecParser (prefs showHelpOnError) $
             (  long "offset"
             <> metavar "OFFSET"
             <> help "vertical offset of the bar from the hub (in leds)"
+            <> value 0
             )
         <*> option auto
             (  long "shift"
             <> metavar "SHIFT"
             <> help "horizontal shift of the bar from the hub (in leds)"
+            <> value 0
             )
         <*> option auto
             (  long "rotation"
             <> metavar "ROTATION"
             <> help "position of the magnet [0..12]"
+            <> value 0
             )
         <*> some (
             (,) <$> strArgument
