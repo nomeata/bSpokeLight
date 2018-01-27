@@ -77,10 +77,11 @@ significant interest, I am avoiding the effort of polishing this.
 
  * Install `ghc`, `cabal-install`, `binutils` and `sdcc`.
  * Run `make -C firmware` to build the firmware image.
+ * Run `cabal update`
  * Run `cabal install --bindir=.` to build the `bSpokeLight` tool.
 
 You should now find a `bSpokeLight` binary. The firmware is embedded in it, so
-you can use it independently from other files.
+you can use it without any other other file from the repository.
 
 
 Hacking on bSpokeLight
