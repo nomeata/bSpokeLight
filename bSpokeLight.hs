@@ -170,7 +170,7 @@ main = join . customExecParser (prefs showHelpOnError) $
   info (helper <*> parser)
   (  fullDesc
   <> header "YQ3008 image generator"
-  -- <> progDesc "Fills a file with as much zeroes as possible"
+  -- <> progDesc "TODO"
   )
   where
     parser :: Parser (IO ())
@@ -197,13 +197,15 @@ main = join . customExecParser (prefs showHelpOnError) $
             (  long "rotation"
             <> metavar "ROTATION"
             <> help "position of the magnet [0..12]"
-            <> value 0
+            <> value 12
+            <> showDefault
             )
         <*> option auto
             (  long "speed"
             <> metavar "SPEED"
             <> help "how many seconds to show one image initially"
             <> value 0.5
+            <> showDefault
             )
         <*> some (
             (,) <$> strArgument
