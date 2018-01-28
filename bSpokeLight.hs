@@ -28,7 +28,7 @@ import Numeric (readHex)
 
 cFRAMES = 256          :: Integer
 cCENTER = 9            :: Double
-cLEN    = 33+cCENTER/2 :: Double
+cLEN    = 33+cCENTER/2 :: Double  -- Lenght of one arm
 cT0RATE = 1000000      :: Integer -- TODO: Need to calibrate this
 
 data Color = R|G|B deriving (Show, Eq)
@@ -42,20 +42,44 @@ type Speed = Double
 type BitMaker = (Color -> Bool -> Complex Double -> Bool) -> [Bool]
 
 
-bitBuilder :: Offset -> Shift -> Rotation -> BitMaker
-bitBuilder off shift rot f =
-    [ f c a (((cpos + displacement) * cis rho * cis rot_radians) / (radius :+ 0))
-    | frame <- [0,1..cFRAMES-1]
-    , let rho = fromIntegral frame*2*pi/ fromIntegral cFRAMES
-    , c <- [R,G,B]
-    , (a, pos) <- ((False,) <$> arm) ++ (((True,) . negate) <$> arm)
-    , let cpos = pos :+ 0
-    ]
+-- Frame (0..1) to position (-cLen..cLen) to coordinate (0..1 × 0..1)
+type Transformation = Double -> Double -> Complex Double
+
+projectCircular :: Offset -> Shift -> Rotation -> Transformation
+projectCircular off shift rot =
+    \ frame pos ->
+        let rho = frame*2*pi
+            cpos = pos :+ 0
+        in ((cpos + displacement) * cis rho * cis rot_radians) / (radius :+ 0)
   where
     displacement = (shift :+ off)
     rot_radians = (-rot-3)/12*2*pi
-    arm = concatMap reverse $ chunksOf 8 $ map (cCENTER/2 +) [0..31]
     radius = sqrt ((cLEN + abs shift)^2 + off^2)
+
+
+projectLinear :: Transformation
+projectLinear frame pos = frame :+ (pos + cLEN)/(2*cLEN)
+
+data TransSpec
+    = Circular Offset Shift Rotation
+    | Linear
+    deriving Show
+
+project :: TransSpec -> Transformation
+project (Circular off shift rot) = projectCircular off shift rot
+project Linear                   = projectLinear
+
+bitBuilder :: TransSpec -> BitMaker
+bitBuilder spec f =
+    [ f c a cpos
+    | frame <- [0,1..cFRAMES-1]
+    , c <- [R,G,B]
+    , (a, pos) <- ((False,) <$> arm) ++ (((True,) . negate) <$> arm)
+    , let cpos = trans (fromIntegral frame / fromIntegral cFRAMES) pos
+    ]
+  where
+    trans = project spec
+    arm = concatMap reverse $ chunksOf 8 $ map (cCENTER/2 +) [0..31]
 
 getColor :: Color -> PixelRGB8 -> Bool
 getColor R (PixelRGB8 r _ _ ) = r > 130
@@ -64,7 +88,7 @@ getColor B (PixelRGB8 _ _ b ) = b > 130
 
 calibrationBits :: [Bool]
 calibrationBits = map not $ foldr1 (zipWith (||)) $
-    [ bitBuilder off 0 0 $ \c a z ->
+    [ bitBuilder (Circular off 0 0) $ \c a z ->
         abs (phase z - off*pi/10) < pi/40 &&
        (c == oc) &&
        (if a then magnitude z > 0.75
@@ -72,7 +96,7 @@ calibrationBits = map not $ foldr1 (zipWith (||)) $
     | (oc, off) <- zip (cycle [R,G,B]) [-8..8] ]
 
 dynImageToPackagedData builder dynImage =
-    bitsToData $ 
+    bitsToData $
     builder $ \col _ (x :+ y) ->
            let pix = pixelAt pixels
                   (round ((( x+1)/2) * w))
@@ -134,9 +158,10 @@ offsetInitialStep, offsetTiming, offsetImages :: Int
     return $ TupE $ map LitE [integerL ois, integerL ot, integerL oi]
     )
 
-work :: FilePath -> Offset -> Shift -> Rotation -> Speed -> [(FilePath, Double)] -> IO ()
-work output offset shift rotation speed timed_sources = do
-    let builder = bitBuilder offset shift rotation
+
+work :: FilePath -> TransSpec -> Speed -> [(FilePath, Double)] -> IO ()
+work output spec speed timed_sources = do
+    let builder = bitBuilder spec
     timed_data <- concat <$> mapM (getImage builder) timed_sources
     let (imagesData, timings) = unzip timed_data
     let imageData = BS.concat imagesData
@@ -173,15 +198,16 @@ main = join . customExecParser (prefs showHelpOnError) $
   -- <> progDesc "TODO"
   )
   where
-    parser :: Parser (IO ())
-    parser = work
-        <$> strOption
-            (  long "output"
-            <> short 'o'
-            <> metavar "FILE"
-            <> help "output file"
+    linearSpecParser :: Parser TransSpec
+    linearSpecParser =
+        flag' Linear
+            (  long "linear"
+            <> help "Scan the input image linearly, not circularly"
             )
-        <*> option auto
+
+    circularSpecParser :: Parser TransSpec
+    circularSpecParser = Circular
+        <$> option auto
             (  long "offset"
             <> metavar "OFFSET"
             <> help "vertical offset of the bar from the hub (in leds)"
@@ -200,6 +226,16 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value 12
             <> showDefault
             )
+
+    parser :: Parser (IO ())
+    parser = work
+        <$> strOption
+            (  long "output"
+            <> short 'o'
+            <> metavar "FILE"
+            <> help "output file"
+            )
+        <*> (linearSpecParser <|> circularSpecParser)
         <*> option auto
             (  long "speed"
             <> metavar "SECONDS"
