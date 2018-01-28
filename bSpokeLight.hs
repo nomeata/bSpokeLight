@@ -42,7 +42,7 @@ type Speed = Double
 type BitMaker = (Color -> Bool -> Complex Double -> Bool) -> [Bool]
 
 
--- Frame (0..1) to position (-cLen..cLen) to coordinate (0..1 × 0..1)
+-- Frame (0..1) to position (-cLen..cLen) to coordinate (-1..1 × -1..1)
 type Transformation = Double -> Double -> Complex Double
 
 projectCircular :: Offset -> Shift -> Rotation -> Transformation
@@ -58,7 +58,7 @@ projectCircular off shift rot =
 
 
 projectLinear :: Transformation
-projectLinear frame pos = frame :+ (pos + cLEN)/(2*cLEN)
+projectLinear frame pos = (2*frame -1) :+ pos/cLEN
 
 data TransSpec
     = Circular Offset Shift Rotation
