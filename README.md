@@ -91,18 +91,21 @@ you can use it without any other other file from the repository.
 
 Docker Container
 ----------------
-To build:
 
-    docker build -t bspoke .
+A simpler way of building this on Linux is to use a `Docker` container:
 
-To run:
+1. To build:
 
-    docker run --rm -it -v $PWD:/home bspoke bSpokeLight \
-        -o fw.bin imgs/star.png 10
+        docker build -t bspoke .
 
-To develop:
+2. To run:
 
-    docker run --rm -it -v $PWD:/home bspoke bash
+        docker run --rm -it -v $PWD:/home bspoke bSpokeLight \
+            -o fw.bin imgs/star.png 10
+
+3. To develop:
+
+        docker run --rm -it -v $PWD:/home bspoke bash
 
 Hacking on bSpokeLight
 ----------------------
