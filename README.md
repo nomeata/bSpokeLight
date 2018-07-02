@@ -64,7 +64,7 @@ Measure this number in “LEDs”, i.e. using another strip. Pass this number as
 the **offset**. If the LED strip is actually below the hub, then the number is
 negative.
 
-Usually the middle piece of the strip is not directly above or below the hub;
+Usually the middle piece of the strip is directly above or below the hub;
 in that case, you can ignore this paragraph. But otherwise, you need a
 **shift**. Measure how far the center of the strip is to the left of the hub.
 Pass this number as the **shift**. If the strip is actually shifted to the
