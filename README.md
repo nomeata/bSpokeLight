@@ -12,7 +12,7 @@ What is the YQ8003?
 Why a new firmware?
 -------------------
 
-The advantages of this code over the official one is:
+The advantage of this code over the official one is:
 
  * Adjustment for the magnet position, so that the displayed images are not
    rotated.
@@ -27,8 +27,7 @@ The advantages of this code over the official one is:
 Some features that are missing compared to the original version (but could be
 added):
 
- * An animationt that looks nice when the weel is not turning, for while the
-   bike is stationary.
+ * An animation that looks nice when the bike is station and the wheel is not turning.
  * Automatic shut-off.
 
 How do I use it?
@@ -121,12 +120,12 @@ This is what I learned about the YQ8003 hardware:
  * The LEDs are controlled as follows:
 
    - `P3_4 = 0` enables the lights.
-   - The 8 bits of `P1` indicate which groups of LEDs are adressed. Bits 0,1,2,3
+   - The 8 bits of `P1` indicate which groups of LEDs are addressed. Bits 0,1,2,3
      address the groups on the arm with the buttons, counted from the middle,
-     while bits 7,6,5,4 address the groupos on the arm with the sensor, again
+     while bits 7,6,5,4 address the groups on the arm with the sensor, again
      from the middle.
    - `P2`, _negated_, actually sets the LEDs of all addressed groups, with bit
-     0 addressing the leds further out and bit 0 the one closest to the middle.
+     0 addressing the LEDs further out and bit 0 the one closest to the middle.
    - All LEDs always share the same color. `P3_5 = 0` is green, `P3_6 = 0` is
      red and `P3_7 = 0` is blue. At most one of these pins should be set to
      zero at a time.
