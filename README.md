@@ -27,7 +27,8 @@ The advantage of this code over the official one is:
 Some features that are missing compared to the original version (but could be
 added):
 
- * An animation that looks nice when the bike is station and the wheel is not turning.
+ * An animation that looks nice when the bike is stationary and the wheel is
+   not turning.
  * Automatic shut-off.
 
 How do I use it?
