@@ -18,6 +18,7 @@ import qualified Data.Bits.Bitwise as BA
 import Options.Applicative
 import Control.Monad
 import Data.Monoid
+import Data.Bifunctor
 import System.Exit
 import Data.Char
 import Data.FileEmbed
@@ -122,8 +123,14 @@ getImage builder source = case source of
             let gifDelays = either error id $ getDelaysGifImages gifData
             putStrLn $ "Adding " ++ filename ++ " (" ++ show (length gifImages) ++ " frames)"
 
-            pure $ zip (map (dynImageToPackagedData builder) gifImages)
-                       (map ((/100) . fromIntegral) gifDelays)
+            let frames = zip (map (dynImageToPackagedData builder) gifImages)
+                             (map ((/100) . fromIntegral) gifDelays)
+
+            if length frames > 8 then do
+                putStrLn "Reducing to 8 frames."
+                return $ map (bimap head sum . unzip) $ chunksOf ((length frames + 7)`div` 8) frames
+            else return frames
+
         (filename, n) -> do
             putStrLn $ "Adding " ++ filename
             dynImage <- either error id <$> readImage filename
