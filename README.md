@@ -51,6 +51,11 @@ To load the firmware onto your wheel, use any STC ISP flash tool, such as
 
     ../path/to/stcgal.py my-firmware.bin
 
+If this does not work right away, try to run `stcgal.py` directly after you
+plug it in, e.g. using
+
+    while ! test -e /dev/ttyUSB0; do true; done; ../path/to/stcgal.py my-firmware.bin
+
 Calibrating your wheel
 ----------------------
 
