@@ -89,16 +89,40 @@ you have to build from source.
 Building from source
 --------------------
 
-Currently, the installation is relatively tedious, but until I know of
-significant interest, I am avoiding the effort of polishing this.
+ 1. If you have not done so yet, fetch the source code and change to the
+    directory containing the code:
 
- * Install `ghc`, `cabal-install`, `binutils` and `sdcc`.
- * Run `make -C firmware` to build the firmware image.
- * Run `cabal update`
- * Run `cabal install --bindir=.` to build the `bSpokeLight` tool.
+        git clone https://github.com/nomeata/bSpokeLight
+        cd bSpokeLight
 
-You should now find a `bSpokeLight` binary. The firmware is embedded in it, so
-you can use it without any other other file from the repository.
+ 2. Install the `nix` tool, if you do not have it yet:
+
+        bash <(curl https://nixos.org/nix/install)
+
+ 3. (Optional, but saves building time:) Install the Cachix tool, and enable
+    the tttool cache (I am sharing the cache with an unrelated project of mine).
+
+        nix-env -iA cachix -f https://cachix.org/api/v1/install
+        cachix use tttool
+
+ 4. Build `bSpokeLight`:
+
+        nix-build nix -A linux-exe
+
+    The first time this can take a long time. Run it over night.
+
+ 5. Copy the resulting program to the current directory:
+
+        cp result/bin/bSpokeLight .
+
+ 4. At this point, `bSpokeLight` should be ready to go. If you run
+
+        ./bSpokeLight
+
+    you should see a help output.
+
+If you have any problems, you can [report an issue via GitHub](https://github.com/nomeata/bSpokeLight/issues).
+
 
 Docker Container
 ----------------
