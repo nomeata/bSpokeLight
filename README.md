@@ -83,6 +83,12 @@ wide hub, and no shift):
 Installation
 ------------
 
+Ready-built binaries for Windows and Linux will be provided shortly. Until then
+you have to build from source.
+
+Building from source
+--------------------
+
 Currently, the installation is relatively tedious, but until I know of
 significant interest, I am avoiding the effort of polishing this.
 

@@ -20,16 +20,17 @@ tested-with:         GHC ==7.6.3, GHC ==8.0.2, GHC==8.2.2
 
 executable bSpokeLight
   main-is:             bSpokeLight.hs
-  build-depends:       base >=4.6 && <4.11
+  build-depends:       base ==4.12.*
   build-depends:       template-haskell
   build-depends:       filepath
   build-depends:       bytestring
-  build-depends:       bitwise >= 0.1 && <0.2
-  build-depends:       JuicyPixels >= 3.2.7 && < 3.3
-  build-depends:       optparse-applicative >= 0.13 && <0.15
-  build-depends:       split >= 0.2 && <0.3
-  build-depends:       file-embed >= 0.0.10 && <0.1
-  build-depends:       regex-posix
+  build-depends:       bitwise ==1.0.*
+  build-depends:       JuicyPixels
+  build-depends:       optparse-applicative == 0.14.*
+  build-depends:       split
+  build-depends:       file-embed
+  build-depends:       regex-posix == 0.95.*
+  build-depends:       regex-posix == 0.95.*
   default-language:    Haskell2010
 
 source-repository head

@@ -1,11 +1,10 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-
+{-# LANGUAGE CPP #-}
 
-Space in the middle: 9
-Off-center: 7
-
--}
+#ifndef FIRMWARE
+#define FIRMWARE "firmware"
+#endif
 
 import Codec.Picture
 import Codec.Picture.Gif
@@ -146,12 +145,12 @@ replace at replacement source
         (before, after) = BS.splitAt at source
 
 template :: BS.ByteString
-template = $(embedFile "firmware/firmware.bin")
+template = $(embedFile (FIRMWARE ++ "/firmware.bin"))
 
 offsetInitialStep, offsetTiming, offsetImages :: Int
 (offsetInitialStep, offsetTiming, offsetImages) = $(do
-    qAddDependentFile "firmware/firmware.map"
-    mapFile <- runIO $ readFile "firmware/firmware.map"
+    qAddDependentFile (FIRMWARE ++ "/firmware.map")
+    mapFile <- runIO $ readFile (FIRMWARE ++ "/firmware.map")
     let find name
             | [_,s] <- getAllTextSubmatches (mapFile =~ ("^C: +([0-9ABCDEF]{8}) +_" ++ name)) :: [String]
             , [(i,"")] <- readHex s
