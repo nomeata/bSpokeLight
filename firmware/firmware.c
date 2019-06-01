@@ -1,5 +1,6 @@
 #include <stc12.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 //__bit on = 1;
 
@@ -9,6 +10,8 @@
 #define RELOAD_T1  58374
 #define RELOAD_T1_HI 0xE4
 #define RELOAD_T1_LO 0x06
+#define DEMO10MS 10
+#define DEMOSPEED 10000
 
 // how many timers until the next frame (row) is shown
 // used initially, until the first magnet contact
@@ -21,10 +24,14 @@ __code const uint16_t timing[IMAGES] =
 __code const uint8_t images[IMAGES][FRAMES * 3 * 8] =
 	{"THIS IS WHERE THE IMAGE STARTS"};
 
+// Are we doing the slow demo
+uint8_t slow = 1;
 // How many timer 1 cycles since the image started?
 uint16_t counter = 0;
 // How many timer 2 cycles until the next image?
 uint16_t time10ms = timing[0];
+// How many timer 2 cycles until the next demo step?
+uint16_t demo10ms = DEMO10MS;
 // Which images to show?
 uint8_t image_num = 0;
 // How many timer 1 cycles per frame
@@ -34,10 +41,51 @@ uint16_t counter2;
 // Which frame
 uint8_t frame = 0;
 
+// State of the demo points
+int16_t demo[3] = { 20, 50, 200 };
+
+void step_demo () {
+  int16_t a = demo[0];
+  int16_t b = demo[1];
+  int16_t c = demo[2];
+
+  int16_t a_ = a > 128 ? a/3 : (2 * 256 + a)/3;
+  int16_t da =
+    (4*abs(b - a) < abs(c - a)) ?
+    ((b - a < 0) ? -2 : 2) :
+    ((c - a < 0) ? -2 : 2);
+
+  int16_t db;
+  if (a > 128 && b > 128+64) db = -10;
+  else if (a < 128 && b < 64) db = 10;
+  else if (abs(a - b) > 128) db = (a_ - b < 0 ? -1 : 1);
+  else db = (a - b < 0) ? 3 : -3;
+
+  int16_t dc = (c % 2 == 1) ? -4 : 4;
+
+  a += da;
+  if (a < 0) a = 0;
+  if (a > 255) a = 255;
+  b += db;
+  if (b < 0) b = 0;
+  if (b > 255) b = 255;
+  c += dc;
+  if (c < 0) c = 0;
+  if (c > 255) c = 255;
+
+  demo[0] = a;
+  demo[1] = b;
+  demo[2] = c;
+}
 
 void Ext1_Isr() __interrupt(0) __using(2)
 {
   //on = 1;
+  if (slow) {
+    if (counter < DEMOSPEED) slow = 0;
+  } else {
+    if (counter > 2*DEMOSPEED) slow = 1;
+  }
   step = counter/FRAMES;
   counter2 = step;
   counter = 0;
@@ -48,9 +96,10 @@ void ISR_Timer0() __interrupt(1) __using(2)
 {
   counter++;
   counter2--;
+  if (counter > 2*DEMOSPEED) { slow = 1; counter = DEMOSPEED; };
   if (!counter2) {
-	counter2 = step;
-	frame++;
+      counter2 = step;
+      frame++;
   }
   TH0=0xff; // increase timer resolution
   TL0=0x80;
@@ -63,11 +112,19 @@ void Ext2_Isr() __interrupt(2) __using(2)
 
 void ISR_Timer1() __interrupt(3) __using(2)
 {
-  time10ms--;
-  while (!time10ms) {
-	image_num++;
-	image_num %= 8;
-	time10ms = timing[image_num];
+  if (slow) {
+    demo10ms--;
+    while (!demo10ms) {
+      step_demo();
+      demo10ms = DEMO10MS;
+    }
+  } else {
+    time10ms--;
+    while (!time10ms) {
+      image_num++;
+      image_num %= 8;
+      time10ms = timing[image_num];
+    }
   }
   TH1=RELOAD_T1_HI;
   TL1=RELOAD_T1_LO;
@@ -115,37 +172,64 @@ inline void setlight(const uint8_t *led_ptr) {
 	P2 = image[i++]; P1_5 = 1; P1_5 = 0; \
 	P2 = image[i++]; P1_4 = 1; P1_4 = 0; \
 
+void set_demobit(int16_t a) {
+  a = (a + 32) % 64;
+  if (a < 32) {
+    a = a + 7 - 2*(a % 8);
+  }
+  uint64_t bits = ~((uint64_t)1 << (uint64_t)a);
+  P2 = ((char *)(&bits))[0]; P1_0 = 1; P1_0 = 0;
+  P2 = ((char *)(&bits))[1]; P1_1 = 1; P1_1 = 0;
+  P2 = ((char *)(&bits))[2]; P1_2 = 1; P1_2 = 0;
+  P2 = ((char *)(&bits))[3]; P1_3 = 1; P1_3 = 0;
+  P2 = ((char *)(&bits))[7]; P1_7 = 1; P1_7 = 0;
+  P2 = ((char *)(&bits))[6]; P1_6 = 1; P1_6 = 0;
+  P2 = ((char *)(&bits))[5]; P1_5 = 1; P1_5 = 0;
+  P2 = ((char *)(&bits))[4]; P1_4 = 1; P1_4 = 0;
+}
+
 void draw_image() {
-	while (1) {
-		unsigned char g;
-		unsigned int i;
-		__code const uint8_t *current_image;
+  while (1) {
+    if (slow) {
+      clear();
+      P3_7 = 1; P3_6 = 0; P3_5 = 1;
+      set_demobit(demo[0] / 4);
+      clear();
+      P3_7 = 1; P3_6 = 1; P3_5 = 0;
+      set_demobit(demo[1] / 4);
+      clear();
+      P3_7 = 0; P3_6 = 1; P3_5 = 1;
+      set_demobit(demo[2] / 4);
+    } else {
+      unsigned char g;
+      unsigned int i;
+      __code const uint8_t *current_image;
 
-		current_image = images[image_num];
-		g = frame;
-		// if (g >= FRAMES) { g = FRAMES-1; }
-		clear();
-		P3_7 = 1; P3_6 = 0; P3_5 = 1;
-		i = g*8*3;
-		SETLIGHT(current_image,p)
+      current_image = images[image_num];
+      g = frame;
+      // if (g >= FRAMES) { g = FRAMES-1; }
+      clear();
+      P3_7 = 1; P3_6 = 0; P3_5 = 1;
+      i = g*8*3;
+      SETLIGHT(current_image,p)
 
-		current_image = images[image_num];
-		g = frame;
-		// if (g >= FRAMES) { g = FRAMES-1; }
-		clear();
-		P3_7 = 1; P3_6 = 1; P3_5 = 0;
-		i = g*8*3 + 8;
-		SETLIGHT(current_image,p)
+      //current_image = images[image_num];
+      //g = frame;
+      // if (g >= FRAMES) { g = FRAMES-1; }
+      clear();
+      P3_7 = 1; P3_6 = 1; P3_5 = 0;
+      i = g*8*3 + 8;
+      SETLIGHT(current_image,p)
 
-		current_image = images[image_num];
-		g = frame;
-		// if (g >= FRAMES) { g = FRAMES-1; }
-		clear();
-		P3_7 = 0; P3_6 = 1; P3_5 = 1;
-		i = g*8*3 + 2*8;
-		SETLIGHT(current_image,p)
-	}
-
+      //current_image = images[image_num];
+      //g = frame;
+      // if (g >= FRAMES) { g = FRAMES-1; }
+      clear();
+      P3_7 = 0; P3_6 = 1; P3_5 = 1;
+      i = g*8*3 + 2*8;
+      SETLIGHT(current_image,p)
+    }
+  }
 }
 
 void main () {
