@@ -23,7 +23,7 @@ in
 let
   overlay = self: super:
     {
-      sdcc = super.callPackage ./sdcc.nix { };
+      sdcc = super.callPackage ./sdcc.nix { gputils = null; };
       bSpokeLight-firmware = pkgs.stdenv.mkDerivation {
         name = "bSpokeLight-firmware";
 
@@ -43,7 +43,6 @@ let
     };
   getPkgs = opts:
     localLib.iohkNix.getPkgs (opts // {
-      config = { allowUnfree = true; };
       extraOverlays = [ overlay ];
     });
 
