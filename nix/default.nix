@@ -59,8 +59,13 @@ in rec {
   static-files = sourceByRegex ../. [
     "README.md"
     "imgs/"
-    "imgs/.*\.png"
-    "imgs/.*\.gif"
+    "imgs/Stop_sign.png"
+    "imgs/christmastree.png"
+    "imgs/eu.png"
+    "imgs/heart.png"
+    "imgs/smiley.png"
+    "imgs/star.png"
+    "imgs/swingout2.gif"
   ];
 
   contrib = ../contrib;
