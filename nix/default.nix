@@ -23,6 +23,7 @@ in
 let
   overlay = self: super:
     {
+      sdcc = super.callPackage ./sdcc.nix { };
       bSpokeLight-firmware = pkgs.stdenv.mkDerivation {
         name = "bSpokeLight-firmware";
 
@@ -40,7 +41,11 @@ let
         '';
       };
     };
-  getPkgs = opts: localLib.iohkNix.getPkgs (opts // { extraOverlays = [ overlay ];});
+  getPkgs = opts:
+    localLib.iohkNix.getPkgs (opts // {
+      config = { allowUnfree = true; };
+      extraOverlays = [ overlay ];
+    });
 
   pkgs         = getPkgs {};
   pkgs-static  = getPkgs { crossSystem = localLib.systems.examples.musl64; };
