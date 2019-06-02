@@ -83,8 +83,11 @@ wide hub, and no shift):
 Installation
 ------------
 
-Ready-built binaries for Windows and Linux will be provided shortly. Until then
-you have to build from source.
+Ready-built binaries for Linux can be found on
+https://github.com/nomeata/bSpokeLight/releases
+
+Binaries for Windows will be provided once we resolve
+https://github.com/input-output-hk/haskell.nix/issues/160
 
 Building from source
 --------------------
