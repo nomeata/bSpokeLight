@@ -98,8 +98,7 @@ in rec {
       source ${pkgs.stdenv}/setup
 
       #version=$(bash ${release}/bSpokeLight --help|perl -ne 'print $1 if /bSpokeLight-(.*) -- The swiss army knife/')
-      version=0.0
-      base="bSpokeLight-$version"
+      base="bSpokeLight"
       mkdir -p $out/$base
       cd $out
       cp -r ${release}/* $base/
