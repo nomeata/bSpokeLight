@@ -1,4 +1,5 @@
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE CPP #-}
 
@@ -17,7 +18,9 @@ import qualified Data.Bits.Bitwise as BA
 import Options.Applicative
 import Control.Monad
 import Data.Monoid
+import Data.List
 import Data.Bifunctor
+import Data.Foldable
 import System.Exit
 import Data.Char
 import Data.FileEmbed
@@ -25,6 +28,9 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Text.Regex.Posix
 import Numeric (readHex)
+import Graphics.Rasterific
+import Graphics.Rasterific.Transformations hiding (Transformation)
+import Graphics.Rasterific.Texture
 
 cFRAMES = 256          :: Integer
 cCENTER = 9            :: Double
@@ -39,10 +45,9 @@ type Shift = Double
 type Rotation = Double
 type Speed = Double
 
-type BitMaker = (Color -> Bool -> Complex Double -> Bool) -> [Bool]
+type BitMaker = forall a. (Color -> Bool -> Complex Double -> a) -> [a]
 
-
--- Frame (0..1) to position (-cLen..cLen) to coordinate (-1..1 × -1..1)
+-- Frame (0..1) and position (-cLen..cLen) to coordinate (-1..1 × -1..1)
 type Transformation = Double -> Double -> Complex Double
 
 projectCircular :: Offset -> Shift -> Rotation -> Transformation
@@ -165,8 +170,24 @@ offsetInitialStep, offsetTiming, offsetImages :: Int
     )
 
 
-work :: FilePath -> TransSpec -> Speed -> [(FilePath, Double)] -> IO ()
-work output spec speed timed_sources = do
+work :: TransSpec -> Either () (Speed, [(FilePath, Double)]) -> FilePath -> IO ()
+work spec (Left ()) output = do
+    let builder = bitBuilder spec
+    let pixels = [ z | (R,z) <- builder $ \c _arm z -> (c,z) ]
+
+    let size = 1000
+        black = PixelRGBA8 0 0 0 255
+        white = PixelRGBA8 255 255 255 255
+        img =
+            renderDrawing size size black $
+            withTexture (uniformTexture white) $
+            for_ pixels $ \(x :+ y) ->
+                let f x = realToFrac $ (x+1) * fromIntegral size/2 in
+                fill $ circle (V2 (f x) (f y)) 3
+
+    writePng output img
+
+work spec (Right (speed, timed_sources)) output = do
     let builder = bitBuilder spec
     timed_data <- concat <$> mapM (getImage builder) timed_sources
     let (imagesData, timings) = unzip timed_data
@@ -233,16 +254,16 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> showDefault
             )
 
-    parser :: Parser (IO ())
-    parser = work
-        <$> strOption
-            (  long "output"
-            <> short 'o'
-            <> metavar "FILE"
-            <> help "output file"
+    maskParser :: Parser ()
+    maskParser =
+        flag' ()
+            (  long "gen-mask"
+            <> help "Create an outline of available pixesl"
             )
-        <*> (linearSpecParser <|> circularSpecParser)
-        <*> option auto
+
+    firmwareParser :: Parser (Speed, [(FilePath, Double)])
+    firmwareParser = (,)
+        <$> option auto
             (  long "speed"
             <> metavar "SECONDS"
             <> help "how long one image scan is initially"
@@ -258,5 +279,16 @@ main = join . customExecParser (prefs showHelpOnError) $
                     (  metavar "DURATION"
                     <> help "duration (in seconds)"
                     )
+            )
+
+    parser :: Parser (IO ())
+    parser = work
+        <$> (linearSpecParser <|> circularSpecParser)
+        <*> ((Left <$> maskParser) <|> (Right <$> firmwareParser))
+        <*> strOption
+            (  long "output"
+            <> short 'o'
+            <> metavar "FILE"
+            <> help "output file"
             )
 

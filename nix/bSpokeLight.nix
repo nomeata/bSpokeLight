@@ -38,6 +38,7 @@
             (hsPkgs.split)
             (hsPkgs.file-embed)
             (hsPkgs.regex-posix)
+            (hsPkgs.Rasterific)
             ];
           };
         };

@@ -80,6 +80,17 @@ wide hub, and no shift):
 
     $ bSpokeLight --offset 7 --rotation 10.5 --output my-firmware.bin …
 
+Which parts are visible?
+------------------------
+
+Do you want to draw a picture, and want to know which parts are visible, given
+your hub size? The command
+
+    $ bSpokeLight --offset 7 --rotation 10.5 --gen-mask --output mask.png
+
+creates a square-size picture with white dots where you will have LEDs. It also
+give you an idea of the available resolution.
+
 Installation
 ------------
 
