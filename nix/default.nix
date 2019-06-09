@@ -85,8 +85,9 @@ in rec {
       mkdir -p $out/
       cp -vsr ${static-files}/* $out
       cp -vs ${static-exe}/bin/bSpokeLight $out/
+      cp -vs ${windows-exe}/bin/bSpokeLight.exe $out/
+      cp -vs ${pkgs-windows.libffi}/bin/libffi-6.dll $out/
     '';
-      # cp -vs ${windows-exe}/bin/bSpokeLight.exe $out/
   };
 
   release-zip = pkgs.stdenv.mkDerivation {

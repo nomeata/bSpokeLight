@@ -10,10 +10,6 @@ jobs:
     - stage: Package
       env: TARGET=release-zip
 
-matrix:
-  allow_failures:
-  - env: TARGET=windows-exe
-
 install:
 - sudo mkdir -p /etc/nix
 - echo "binary-caches = https://cache.nixos.org https://nixcache.reflex-frp.org https://static-haskell-nix.cachix.org https://hydra.iohk.io" | sudo tee -a /etc/nix/nix.conf > /dev/null
