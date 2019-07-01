@@ -30,15 +30,7 @@
           depends = [
             (hsPkgs.base)
             (hsPkgs.template-haskell)
-            (hsPkgs.filepath)
-            (hsPkgs.bytestring)
-            (hsPkgs.bitwise)
-            (hsPkgs.JuicyPixels)
-            (hsPkgs.optparse-applicative)
-            (hsPkgs.split)
-            (hsPkgs.file-embed)
             (hsPkgs.regex-posix)
-            (hsPkgs.Rasterific)
             ];
           };
         };
