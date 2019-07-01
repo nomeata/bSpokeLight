@@ -14,7 +14,6 @@ import Data.Complex
 import System.Environment
 import System.FilePath
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as BSC
 import qualified Data.Bits.Bitwise as BA
 import Options.Applicative
 import Control.Monad
@@ -153,18 +152,22 @@ replace at replacement source
 template :: BS.ByteString
 template = $(embedFile (FIRMWARE ++ "/firmware.bin"))
 
-mapFile :: String
-mapFile = BSC.unpack $(embedFile (FIRMWARE ++ "/firmware.map"))
-
 offsetInitialStep, offsetTiming, offsetImages :: Int
-(offsetInitialStep, offsetTiming, offsetImages) =
+(offsetInitialStep, offsetTiming, offsetImages) = $(do
+    qAddDependentFile (FIRMWARE ++ "/firmware.map")
+    mapFile <- runIO $ readFile (FIRMWARE ++ "/firmware.map")
     let find name
             | [_,s] <- getAllTextSubmatches (mapFile =~ ("^C: +([0-9ABCDEF]{8}) +_" ++ name)) :: [String]
             , [(i,"")] <- readHex s
-            = i
+            = return i
             | otherwise
-            = error $ "Cound not find location of " ++ show name ++ " in firmware.map"
-    in (find "initial_step", find "timing", find "images")
+            = do reportError $ "Cound not find location of " ++ show name ++ " in firmware.map"
+                 fail ""
+    ois <- find "initial_step"
+    ot  <- find "timing"
+    oi  <- find "images"
+    return $ TupE $ map LitE [integerL ois, integerL ot, integerL oi]
+    )
 
 
 work :: TransSpec -> Either () (Speed, [(FilePath, Double)]) -> FilePath -> IO ()
