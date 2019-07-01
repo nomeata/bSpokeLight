@@ -105,7 +105,7 @@ hackage:
         "Rasterific".flags.embed_linear = true;
         "pretty".revision = (((hackage."pretty")."1.1.3.6").revisions).default;
         "cabal-doctest".revision = (((hackage."cabal-doctest")."1.0.6").revisions).default;
-        "ghc-boot-th".revision = (((hackage."ghc-boot-th")."8.6.4").revisions).default;
+        "ghc-boot-th".revision = (((hackage."ghc-boot-th")."8.6.5").revisions).default;
         "base-orphans".revision = (((hackage."base-orphans")."0.8.1").revisions).default;
         "th-abstraction".revision = (((hackage."th-abstraction")."0.3.1.0").revisions).default;
         "array".revision = (((hackage."array")."0.5.3.0").revisions).default;
@@ -113,8 +113,8 @@ hackage:
         "integer-gmp".revision = (((hackage."integer-gmp")."1.0.2.0").revisions).default;
         };
       compiler = {
-        version = "8.6.4";
-        nix-name = "ghc864";
+        version = "8.6.5";
+        nix-name = "ghc865";
         packages = {
           "binary" = "0.8.6.0";
           "ghc-prim" = "0.5.3";
@@ -136,7 +136,7 @@ hackage:
           "filepath" = "1.4.2.1";
           "process" = "1.6.5.0";
           "pretty" = "1.1.3.6";
-          "ghc-boot-th" = "8.6.4";
+          "ghc-boot-th" = "8.6.5";
           "array" = "0.5.3.0";
           "integer-gmp" = "1.0.2.0";
           };
