@@ -58,7 +58,7 @@ projectCircular off shift rot =
             cpos = pos :+ 0
         in ((cpos + displacement) * cis rho * cis rot_radians) / (radius :+ 0)
   where
-    displacement = (shift :+ off)
+    displacement = shift :+ off
     rot_radians = (-rot-3)/12*2*pi
     radius = sqrt ((cLEN + abs shift)^2 + off^2)
 
@@ -80,7 +80,7 @@ bitBuilder spec f =
     [ f c a cpos
     | frame <- [0,1..cFRAMES-1]
     , c <- [R,G,B]
-    , (a, pos) <- ((False,) <$> arm) ++ (((True,) . negate) <$> arm)
+    , (a, pos) <- ((False,) <$> arm) ++ ((True,) . negate <$> arm)
     , let cpos = trans (fromIntegral frame / fromIntegral cFRAMES) pos
     ]
   where
@@ -93,12 +93,12 @@ getColor G (PixelRGB8 _ g _ ) = g > 130
 getColor B (PixelRGB8 _ _ b ) = b > 130
 
 calibrationBits :: [Bool]
-calibrationBits = map not $ foldr1 (zipWith (||)) $
+calibrationBits = map not $ foldr1 (zipWith (||))
     [ bitBuilder (Circular off 0 0) $ \c a z ->
         abs (phase z - off*pi/10) < pi/40 &&
        (c == oc) &&
        (if a then magnitude z > 0.75
-             else (magnitude z < 0.75 && (magnitude z > 0.5 || off == 0)))
+             else magnitude z < 0.75 && (magnitude z > 0.5 || off == 0))
     | (oc, off) <- zip (cycle [R,G,B]) [-8..8] ]
 
 dynImageToPackagedData builder dynImage =
@@ -120,7 +120,7 @@ bitsToData = BS.pack . map BA.fromListLE . chunksOf 8
 getImage :: BitMaker -> (FilePath, Double) -> IO [(BS.ByteString, Double)]
 getImage builder source = case source of
         ("CALIBRATION",n) -> do
-            putStrLn $ "Adding offset calibration image"
+            putStrLn "Adding offset calibration image"
             pure [(bitsToData calibrationBits, n)]
         (filename, _) | takeExtension filename == ".gif" -> do
             gifData <- BS.readFile filename
@@ -191,7 +191,7 @@ work spec (Right (speed, timed_sources)) output = do
     let imageData = BS.concat imagesData
 
     when (length imagesData > 8) $ do
-        putStrLn $ "Too many images"
+        putStrLn "Too many images"
         exitFailure
 
     let timingData    = BS.pack $ map fromIntegral $
@@ -202,15 +202,16 @@ work spec (Right (speed, timed_sources)) output = do
 
     let initial_step_data = BS.pack $ map fromIntegral $
             concatMap (\x -> [x`mod`256, x`div`256]) $
-            map round $
+            map round
             [ speed / fromIntegral cFRAMES * fromIntegral cT0RATE ]
 
     putStrLn $ "Writing " ++ output
     BS.writeFile output $
         replace offsetImages imageData $
         replace offsetTiming timingData $
-        replace offsetInitialStep initial_step_data $
+        replace offsetInitialStep initial_step_data
         template
+
 
 -- Argument handling
 
