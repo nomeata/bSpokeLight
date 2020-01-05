@@ -13,6 +13,11 @@
 #define DEMO10MS 10
 #define DEMOSPEED 10000
 
+#define Nop() \
+     __asm     \
+         nop   \
+     __endasm  \
+
 // how many timers until the next frame (row) is shown
 // used initially, until the first magnet contact
 // (i.e the first interrupt 0)
@@ -86,7 +91,7 @@ void Ext1_Isr() __interrupt(0) __using(2)
   } else {
     if (counter > 2*DEMOSPEED) slow = 1;
   }
-  step = counter/FRAMES;
+  step = counter/((uint16_t)FRAMES - (uint16_t)(int8_t)frame);
   counter2 = step;
   counter = 0;
   frame = 0;
@@ -232,9 +237,25 @@ void draw_image() {
   }
 }
 
+void delay(void) {
+  unsigned int j = 0;
+  unsigned int g = 0;
+  for(j=0;j<5;j++) {
+    for(g=0;g<60000;g++) {
+      Nop();
+      Nop();
+      Nop();
+      Nop();
+      Nop();
+    }
+  }
+}
+
 void main () {
-	unsigned long int x;
-	uint8_t i = 0;
+        // The next three lines try to make flashing the device easier
+	EA = 1;
+        delay();
+	EA = 0;
 
 	// activate magnet?
 	IT0 = 1;
@@ -261,11 +282,12 @@ void main () {
 
 	EA = 1; // Enable interrupts
 
-	// Wait a while (to flash it)
-	x = 0x20000; while (x--) {};
-
 	P3_4 = 0;
+
+        /* what for?
 	P2 = 0xff;
 	P1 = 0x01;
+        */
+
 	draw_image();
 }
