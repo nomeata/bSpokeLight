@@ -194,15 +194,10 @@ work spec (Right (speed, timed_sources)) output = do
         putStrLn "Too many images"
         exitFailure
 
-    let timingData    = BS.pack $ map fromIntegral $
-            concatMap (\x -> [x`mod`256, x`div`256]) $
-            map round $
-            map (*256) $
+    let timingData  = doubleToUInt16Array $
             take 8 $ timings ++ repeat 0
 
-    let initial_step_data = BS.pack $ map fromIntegral $
-            concatMap (\x -> [x`mod`256, x`div`256]) $
-            map round
+    let initial_step_data = doubleToUInt16Array
             [ speed / fromIntegral cFRAMES * fromIntegral cT0RATE ]
 
     putStrLn $ "Writing " ++ output
@@ -211,6 +206,9 @@ work spec (Right (speed, timed_sources)) output = do
         replace offsetTiming timingData $
         replace offsetInitialStep initial_step_data
         template
+
+doubleToUInt16Array =
+    BS.pack . map fromIntegral . concatMap ((\x -> [x`mod`256, x`div`256]) . round)
 
 
 -- Argument handling
