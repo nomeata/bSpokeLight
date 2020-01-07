@@ -196,15 +196,9 @@ void set_demobit(int16_t a) {
 void draw_image() {
   while (1) {
     if (slow) {
-      clear();
-      P3_7 = 1; P3_6 = 0; P3_5 = 1;
-      set_demobit(demo[0] / 4);
-      clear();
-      P3_7 = 1; P3_6 = 1; P3_5 = 0;
-      set_demobit(demo[1] / 4);
-      clear();
-      P3_7 = 0; P3_6 = 1; P3_5 = 1;
-      set_demobit(demo[2] / 4);
+      clear(); red();   set_demobit(demo[0] / 4);
+      clear(); green(); set_demobit(demo[1] / 4);
+      clear(); blue();  set_demobit(demo[2] / 4);
     } else {
       unsigned char g;
       unsigned int i;
@@ -213,24 +207,21 @@ void draw_image() {
       current_image = images[image_num];
       g = frame;
       // if (g >= FRAMES) { g = FRAMES-1; }
-      clear();
-      P3_7 = 1; P3_6 = 0; P3_5 = 1;
+      clear(); red();
       i = g*8*3;
       SETLIGHT(current_image,p)
 
       //current_image = images[image_num];
       //g = frame;
       // if (g >= FRAMES) { g = FRAMES-1; }
-      clear();
-      P3_7 = 1; P3_6 = 1; P3_5 = 0;
+      clear(); green();
       i = g*8*3 + 8;
       SETLIGHT(current_image,p)
 
       //current_image = images[image_num];
       //g = frame;
       // if (g >= FRAMES) { g = FRAMES-1; }
-      clear();
-      P3_7 = 0; P3_6 = 1; P3_5 = 1;
+      clear(); blue();
       i = g*8*3 + 2*8;
       SETLIGHT(current_image,p)
     }
