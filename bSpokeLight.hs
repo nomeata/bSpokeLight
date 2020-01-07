@@ -195,6 +195,7 @@ work spec (Right (speed, timed_sources)) output = do
         exitFailure
 
     let timingData  = doubleToUInt16Array $
+            map (*256) $
             take 8 $ timings ++ repeat 0
 
     let initial_step_data = doubleToUInt16Array
