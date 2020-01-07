@@ -18,11 +18,6 @@
          nop   \
      __endasm  \
 
-// how many timers until the next frame (row) is shown
-// used initially, until the first magnet contact
-// (i.e the first interrupt 0)
-__code const uint16_t initial_step = 1000000/FRAMES;
-
 __code const uint16_t timing[IMAGES] =
 	{ 23*256+42,23*256+42,23*256+42,23*256+42,23*256+42,23*256+42,23*256+42,23*256+42 };
 
@@ -272,8 +267,6 @@ void main () {
 
 	// Unclear purpose, later the code reads from P4_2.
 	//P4_0 = 1;
-
-	step = counter2 = initial_step;
 
 	EA = 1; // Enable interrupts
 

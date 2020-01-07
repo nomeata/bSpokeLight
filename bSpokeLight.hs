@@ -44,7 +44,6 @@ data Color = R|G|B deriving (Show, Eq)
 type Offset = Double
 type Shift = Double
 type Rotation = Double
-type Speed = Double
 
 type BitMaker = forall a. (Color -> Bool -> Complex Double -> a) -> [a]
 
@@ -167,7 +166,7 @@ offsetInitialStep, offsetTiming, offsetImages :: Int
     in (find "initial_step", find "timing", find "images")
 
 
-work :: TransSpec -> Either () (Speed, [(FilePath, Double)]) -> FilePath -> IO ()
+work :: TransSpec -> Either () [(FilePath, Double)] -> FilePath -> IO ()
 work spec (Left ()) output = do
     let builder = bitBuilder spec
     let pixels = [ z | (R,z) <- builder $ \c _arm z -> (c,z) ]
@@ -184,7 +183,7 @@ work spec (Left ()) output = do
 
     writePng output img
 
-work spec (Right (speed, timed_sources)) output = do
+work spec (Right timed_sources) output = do
     let builder = bitBuilder spec
     timed_data <- concat <$> mapM (getImage builder) timed_sources
     let (imagesData, timings) = unzip timed_data
@@ -198,14 +197,10 @@ work spec (Right (speed, timed_sources)) output = do
             map (*256) $
             take 8 $ timings ++ repeat 0
 
-    let initial_step_data = doubleToUInt16Array
-            [ speed / fromIntegral cFRAMES * fromIntegral cT0RATE ]
-
     putStrLn $ "Writing " ++ output
     BS.writeFile output $
         replace offsetImages imageData $
-        replace offsetTiming timingData $
-        replace offsetInitialStep initial_step_data
+        replace offsetTiming timingData
         template
 
 doubleToUInt16Array =
@@ -258,25 +253,17 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> help "Create an outline of available pixesl"
             )
 
-    firmwareParser :: Parser (Speed, [(FilePath, Double)])
-    firmwareParser = (,)
-        <$> option auto
-            (  long "speed"
-            <> metavar "SECONDS"
-            <> help "how long one image scan is initially"
-            <> value 0.5
-            <> showDefault
-            )
-        <*> some (
-            (,) <$> strArgument
-                    (  metavar "IMAGE"
-                    <> help "input file (can be CALIBRATION)"
-                    )
-                <*> argument auto
-                    (  metavar "DURATION"
-                    <> help "duration (in seconds)"
-                    )
-            )
+    firmwareParser :: Parser [(FilePath, Double)]
+    firmwareParser = some (
+        (,) <$> strArgument
+                (  metavar "IMAGE"
+                <> help "input file (can be CALIBRATION)"
+                )
+            <*> argument auto
+                (  metavar "DURATION"
+                <> help "duration (in seconds)"
+                )
+        )
 
     parser :: Parser (IO ())
     parser = work
