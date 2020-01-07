@@ -147,11 +147,11 @@ P3_7 = 0: blue
 
  */
 
-inline void clear () {
-  P2 = 0xff;
-  P1 = 0xff;
-  P1 = 0x00;
-}
+inline void red() { P3_7 = 1; P3_6 = 0; P3_5 = 1; }
+inline void blue() { P3_7 = 0; P3_6 = 1; P3_5 = 1; }
+inline void green() { P3_7 = 1; P3_6 = 1; P3_5 = 0; }
+inline void all_leds () { P2 = 0x00; P1 = 0xff; P1 = 0x00; }
+inline void clear () { P2 = 0xff; P1 = 0xff; P1 = 0x00; }
 
 // blocks counted from the middle
 // leds from the outside, already negated
@@ -252,9 +252,13 @@ void delay(void) {
 }
 
 void main () {
-        // The next three lines try to make flashing the device easier
+	// Init sequence, with no timers and lots of delay, to test LEDs
+	// and allow for easy flashing
 	EA = 1;
-        delay();
+	P3_4 = 0; // enable LEDS
+	red(); all_leds(); delay(); clear();
+	green(); all_leds(); delay(); clear();
+	blue(); all_leds(); delay(); clear();
 	EA = 0;
 
 	// activate magnet?
@@ -281,13 +285,6 @@ void main () {
 	step = counter2 = initial_step;
 
 	EA = 1; // Enable interrupts
-
-	P3_4 = 0;
-
-        /* what for?
-	P2 = 0xff;
-	P1 = 0x01;
-        */
 
 	draw_image();
 }
