@@ -86,7 +86,7 @@ void Ext1_Isr() __interrupt(0) __using(2)
   } else {
     if (counter > 2*DEMOSPEED) slow = 1;
   }
-  step = counter/((uint16_t)FRAMES - (uint16_t)(int8_t)frame);
+  step = counter/FRAMES;
   counter2 = step;
   counter = 0;
   frame = 0;
